@@ -1,0 +1,11 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # When a request comes in, check if it's for an actual file or directory.
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+
+  # If it's not for a real file or directory,
+  # redirect the request to index.php to handle it.
+  RewriteRule . index.php [L]
+</IfModule>
