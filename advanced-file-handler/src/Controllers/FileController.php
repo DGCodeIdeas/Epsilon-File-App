@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\FileModel;
+use App\Controllers\ErrorController;
 
 /**
  * Handles file-related actions like uploading and downloading.
@@ -41,7 +42,7 @@ class FileController
     public function download()
     {
         if (!isset($_GET['file'])) {
-            $this->triggerNotFound("File not specified.");
+            ErrorController::notFound("File not specified.");
             return;
         }
 
@@ -50,7 +51,7 @@ class FileController
         $filePath = $fileModel->getFilePath($filename);
 
         if ($filePath === false) {
-            $this->triggerNotFound("File not found or access denied.");
+            ErrorController::notFound("File not found or access denied.");
             return;
         }
 
@@ -68,18 +69,6 @@ class FileController
 
         // Read the file and stream it to the output buffer
         readfile($filePath);
-    }
-
-    /**
-     * A helper method to trigger a 404 error.
-     *
-     * @param string $message The error message to display.
-     */
-    private function triggerNotFound($message)
-    {
-        // In this architecture, we call the ErrorController directly.
-        // This is a simple way to do it without a complex redirection.
-        $errorController = new ErrorController();
-        $errorController->notFound($message);
+        exit; // Terminate script to prevent any further output
     }
 }

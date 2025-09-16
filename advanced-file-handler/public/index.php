@@ -44,11 +44,7 @@ spl_autoload_register(function ($class) {
     }
 });
 
-// 3. Load Core Classes and Configuration
-require BASE_PATH . 'src/Core/App.php';
-require BASE_PATH . 'src/Core/Router.php';
-require BASE_PATH . 'src/Core/Request.php';
-
+// 3. Use Core Classes
 use App\Core\App;
 use App\Core\Router;
 use App\Core\Request;
