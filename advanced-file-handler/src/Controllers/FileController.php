@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\FileModel;
+use App\Controllers\ErrorController;
 
 /**
  * Handles file-related actions like uploading and downloading.

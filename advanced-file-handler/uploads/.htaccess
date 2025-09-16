@@ -1,0 +1,2 @@
+# Prevent web access to any file in this directory
+Deny from all
