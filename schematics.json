@@ -1,0 +1,498 @@
+{
+  "version": "v1",
+  "project_name": "PHP Self-Contained File Handler (Mobile-First)",
+  "project_goal": "To develop a secure, dependency-free PHP file uploader and downloader optimized for mobile devices and progressively enhanced for desktop. The application will run in an intranet environment and feature an interactive, responsive UI with image previews and dynamic status indicators, styled with a self-contained, mobile-first utility CSS file.",
+  "tech_stack": [
+    "PHP 8+",
+    "Vanilla JavaScript (ES6+)",
+    "HTML5",
+    "CSS3"
+  ],
+  "environment_constraints": "Must run within a Laragon WAMP stack on a private intranet with no external network dependencies for libraries or frameworks.",
+  "file_structure": [
+    { "type": "directory", "path": "./", "name": "file-handler" },
+    { "type": "file", "path": "./file-handler/", "name": "index.php" },
+    { "type": "file", "path": "./file-handler/", "name": "style.css" },
+    { "type": "file", "path": "./file-handler/", "name": "app.js" },
+    { "type": "file", "path": "./file-handler/", "name": "uploader.php" },
+    { "type": "file", "path": "./file-handler/", "name": "downloader.php" },
+    { "type": "directory", "path": "./file-handler/", "name": "uploads" },
+    { "type": "file", "path": "./file-handler/uploads/", "name": ".htaccess" }
+  ],
+  "implementation_plan": [
+    {
+      "phase": 1,
+      "phase_name": "Mobile-First Frontend Structure and Styling",
+      "tasks": [
+        {
+          "task_id": "FE-01-MF",
+          "task_name": "Create Responsive HTML5 Boilerplate",
+          "target_file": "/file-handler/index.php",
+          "description": "Build the complete static HTML structure, optimized for mobile rendering and designed for progressive enhancement.",
+          "specifications": [
+            "Use a standard HTML5 document structure.",
+            "Crucially, include the viewport meta tag in the <head>: `<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">`",
+            "Link to 'style.css' in the <head>.",
+            "Link to 'app.js' with the `defer` attribute before the closing `</body>` tag.",
+            "The `<body>` tag should have classes `bg-gray-100 p-4 md:flex md:items-center md:justify-center md:p-0` to provide simple padding on mobile and flexbox centering only on medium screens and up.",
+            "Create a main container div with id `app-container` and classes `w-full max-w-2xl` for responsive width.",
+            "Inside `app-container`, create an `upload-container` div with classes `bg-white rounded-lg shadow-md p-6 md:p-8` for responsive padding.",
+            "The `drop-zone` must contain instructional text, a `browse-btn`, and a hidden `file-input`.",
+            "The `preview-container` must stack elements vertically on mobile by default. A responsive class `md:flex-row` could be used to place image and text side-by-side on larger screens.",
+            "The `download-container` should naturally stack vertically, suitable for all screen sizes.",
+            "Incorporate a PHP include: `<?php include 'listFiles.php'; ?>`"
+          ]
+        },
+        {
+          "task_id": "FE-02-MF",
+          "task_name": "Implement Mobile-First Utility CSS",
+          "target_file": "/file-handler/style.css",
+          "description": "Create utility CSS classes with a mobile-first architecture. Base styles apply to all viewports, and `min-width` media queries add styles for larger screens.",
+          "specifications": [
+            "Implement a soft CSS reset as the base.",
+            "Define Default (Mobile) Styles: These are the core classes without any prefix. Examples: `.w-full`, `.p-4` (for smaller padding on mobile), `.p-6`, `.text-lg`, `.flex-col`.",
+            "Establish Responsive Breakpoints via `min-width` media queries. Use common device sizes: `md: 768px` (for tablets and up) and `lg: 1024px` (for desktops).",
+            "Implement Responsive Class Naming Convention: use escaped colons `md\\:` and `lg\\:` as prefixes. The file should be structured with media queries wrapping the prefixed classes:",
+            "  - `/* Mobile-first base styles */ .p-4 { padding: 1rem; }`",
+            "  - `/* Medium screens and up */ @media (min-width: 768px) { .md\\:p-8 { padding: 2rem; } .md\\:flex { display: flex; } }`",
+            "Define Specific Responsive Utilities:",
+            "  - Sizing: `.w-full` (default), `.max-w-2xl` (for larger screens to constrain the container).",
+            "  - Padding: `.p-4`, `.p-6` (mobile defaults), `.md\\:p-8`, `.lg\\:p-10` (larger padding for more space on desktop).",
+            "  - Layout: `body` should have base class `.p-4` and responsive classes `.md\\:flex`, `.md\\:items-center`, `.md\\:justify-center` added to change its layout behavior on larger screens.",
+            "  - Typography should be responsive: base font sizes can be overridden for larger screens, e.g. `.text-xl` and `lg\\:text-2xl`.",
+            "Animation classes (`.shake-animation`, `.pulse-animation`) should be defined globally as they are not screen-size dependent."
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 2,
+      "phase_name": "Client-Side Application Logic",
+      "tasks": [
+        {
+          "task_id": "JS-01",
+          "task_name": "Develop Interactive UI Logic",
+          "target_file": "/file-handler/app.js",
+          "description": "JavaScript logic is screen-size agnostic and requires no core changes. It will focus on DOM manipulation, file handling and API communication.",
+          "specifications": [
+            "Wrap all code in an IIFE.",
+            "Define constants for all necessary DOM elements.",
+            "Implement event listeners for `click`, `drag-and-drop`, and file input `change`.",
+            "The `handleFileSelect(file)` function will validate the file, use `FileReader` for image previews, and trigger the upload process.",
+            "The `uploadFile(file)` function will use `FormData` and the `fetch` API to POST the file to `uploader.php`. Add a `.catch()` for network failures.",
+            "The `updateUI(status, message)` function will dynamically show the status indicator element, applying the correct styles and animation based on the server response.",
+            "A `resetUI()` function, called via `setTimeout`, will clear the UI after an upload attempt, preparing it for the next file."
+            
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 3,
+      "phase_name": "Backend Upload Handler (Unchanged)",
+      "tasks": [
+        {
+          "task_id": "BE-01",
+          "task_name": "Create Secure File Upload Endpoint",
+          "target_file": "/file-handler/uploader.php",
+          "specifications": [
+            "Set response header to `Content-Type: application/json`.",
+            "Define configurations for upload directory, allowed MIME types, and max file size.",
+            "Sequentially validate the request: check for file existence, PHP upload errors, file size, and the true MIME type using `finfo`.",
+            "Generate a unique and secure filename using `time()` and `random_bytes` to prevent overwrites and mitigate security risks.",
+            "Perform a pre-flight check on the uploads directory for existence and writability.",
+            "Usemove_uploaded_file()` for the final file operation.",
+            "Return a structured JSON response `{ 'status': '...', 'message': '...' }` indicating the outcome."
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 4,
+      "phase_name": "Backend File Management (Unchanged)",
+      "tasks": [
+        {
+          "task_id": "BE-02",
+          "task_name": "Create File Listing Script",
+          "target_file": "/file-handler/listFiles.php",
+          "specifications": [
+             "Use `scandir()` to list files.",
+             "Iterate and filter results to exclude '.', '..', and `.htaccess`.",
+             "For each valid file, generate an `<li>` element with an `<a>` tag.",
+             "The `href` must point to `downloader.php` with a URL parameter (e.g., `downloader.php?file=...`).",
+             "Escape all file name output with `htmlspecialchars()` to prevent XSS."
+          ]
+        },
+        {
+          "task_id": "BE-03",
+          "task_name": "Create Secure Download Endpoint",
+          "target_file": "/file-handler/downloader.php",
+          "specifications": [
+            "Validate `$_GET['file']` for existence and to prevent directory traversal attacks by comparing the input against its `basename()`.",
+            "Construct an absolute file path and verify existence with `file_exists()`.",
+            "Send appropriate HTTP headers (`Content-Type`, `Content-Disposition`, `Content-Length`, cache directives) to trigger a browser download.",
+            "Use `readfile()` to stream the file content to the client."
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 5,
+      "phase_name": "Security Hardening (Unchanged)",
+      "tasks": [
+        {
+          "task_id": "SEC-01",
+          "task_name": "Secure the Uploads Directory",
+          "target_file": "/file-handler/uploads/.htaccess",
+          "specifications": [
+             "Use a `<FilesMatch>` directive to match common script extensions.",
+             "Apply `Deny from all` within the directive to prevent web-based execution of uploaded scripts."
+          ]
+        }
+      ]
+    }
+  ]
+}
+
+{
+  "version": "v2",
+  "project_name": "PHP OOP MVC File Handler (Mobile-First)",
+  "project_goal": "To re-architect the file handler application into a robust, secure, and maintainable object-oriented structure using the MVC (Model-View-Controller) pattern. The application will maintain its mobile-first, dependency-free frontend while leveraging a clear separation of concerns on the backend.",
+  "tech_stack": [ "PHP 8+ (OOP)", "Vanilla JavaScript (ES6+)", "HTML5", "CSS3" ],
+  "architecture_overview": "A front-controller pattern will be used. All HTTP requests will be routed through `public/index.php`. A simple router will dispatch requests to the appropriate Controller methods. The Controller will interact with the Model for data and business logic. The Model will handle all file system operations. The Controller will then pass data to the View, which is responsible solely for presentation.",
+  "file_structure": [
+    { "type": "directory", "path": "./", "name": "oop-file-handler" },
+    { "type": "directory", "path": "./oop-file-handler/", "name": "app", "description": "Core application logic, resides outside the web root." },
+    { "type": "directory", "path": "./oop-file-handler/app/", "name": "Controllers" },
+    { "type": "directory", "path": "./oop-file-handler/app/", "name": "Models" },
+    { "type": "directory", "path": "./oop-file-handler/app/", "name": "Views" },
+    { "type": "directory", "path": "./oop-file-handler/app/", "name": "Core", "description": "Application bootstrap and routing." },
+    { "type": "directory", "path": "./oop-file-handler/", "name": "public", "description": "The public web root. Only this directory is exposed to the web server." },
+    { "type": "directory", "path": "./oop-file-handler/public/", "name": "css" },
+    { "type": "directory", "path": "./oop-file-handler/public/", "name": "js" },
+    { "type": "directory", "path": "./oop-file-handler/", "name": "uploads", "description": "Secure storage for all uploaded files. MUST be outside the public web root." },
+    { "type": "file", "path": "./oop-file-handler/public/", "name": "index.php", "description": "The single entry point for all requests (Front Controller)." },
+    { "type": "file", "path": "./oop-file-handler/public/", "name": ".htaccess", "description": "Redirects all requests to index.php." },
+    { "type": "file", "path": "./oop-file-handler/public/css/", "name": "style.css" },
+    { "type": "file", "path": "./oop-file-handler/public/js/", "name": "app.js" },
+    { "type": "file", "path": "./oop-file-handler/app/Core/", "name": "Router.php" },
+    { "type": "file", "path": "./oop-file-handler/app/Core/", "name": "Request.php" },
+    { "type": "file", "path": "./oop-file-handler/app/Controllers/", "name": "PageController.php", "description": "Handles rendering of the main upload page." },
+    { "type": "file", "path": "./oop-file-handler/app/Controllers/", "name": "UploadController.php", "description": "Handles API requests for file uploads." },
+    { "type": "file", "path": "./oop-file-handler/app/Controllers/", "name": "DownloadController.php", "description": "Handles secure file download requests." },
+    { "type": "file", "path": "./oop-file-handler/app/Models/", "name": "FileModel.php", "description": "Handles all business logic and interaction with the file system." },
+    { "type": "file", "path": "./oop-file-handler/app/Views/", "name": "home.view.php", "description": "HTML template for the main page." }
+  ],
+  "implementation_plan": [
+    {
+      "phase": 1,
+      "phase_name": "Application Core & Routing Setup",
+      "tasks": [
+        {
+          "task_id": "CORE-01",
+          "task_name": "Create Front Controller",
+          "target_file": "/public/index.php",
+          "specifications": [
+            "Define a base path constant for the project root `__DIR__.'/../'`.",
+            "Use `spl_autoload_register` to automatically load class files without manual `require` statements.",
+            "Instantiate Core classes `Request` and `Router`.",
+            "Define the application routes for GET '/', POST '/upload', and GET '/download'.",
+            "Dispatch the request using the router, which will execute the appropriate controller method."
+          ]
+        },
+        {
+          "task_id": "CORE-02",
+          "task_name": "Implement Rewriting Rule",
+          "target_file": "/public/.htaccess",
+          "specifications": [
+            "Use `mod_rewrite` to redirect all requests for non-existent files or directories to `index.php`.",
+            "Rule must correctly pass the original request URI to the front controller for routing."
+          ]
+        },
+        {
+          "task_id": "CORE-03",
+          "task_name": "Build Router and Request Classes",
+          "target_file": "/app/Core/",
+          "specifications": [
+            "**Request.php**: Create a class `Request` with methods to parse the request URI (`getUri()`) and the request method (`getMethod()`).",
+            "**Router.php**: Create a class `Router` with methods to define routes (`get()`, `post()`) and a method to dispatch a request to a controller method (`dispatch($uri, $method)`). The router should handle basic '404 not found' scenarios."
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 2,
+      "phase_name": "Model: Business Logic and Data Handling",
+      "tasks": [
+        {
+          "task_id": "MODEL-01",
+          "task_name": "Develop the FileModel Class",
+          "target_file": "/app/Models/FileModel.php",
+          "description": "This class will encapsulate all interactions with the filesystem. It should be completely unaware of HTTP requests or responses.",
+          "specifications": [
+            "Define private properties for upload path, max file size, and allowed MIME types.",
+            "Create a public method `getAllFiles()`: scans theuploads directory, filters out invalid entries ('.', '..'), and returns an array of valid filenames.",
+            "Create a public method `saveFile(array $fileData)`: Takes the `$_FILES['userfile']` array as an argument. This method will contain all validation logic from the original procedural script (checking `error` key, size, and true MIME type via `finfo`). If validation passes, it generates a secure, unique filename and uses `move_uploaded_file()`. Returns an associative array indicating status, e.g., `['status' => 'success', 'message' => '...']` or `['status' => 'error', 'message' => '...']`.",
+            "Create a public method `getFilePath(string $filename)`: Takes a filename as input. Performs a security check to prevent directory traversal (`basename`). If the file exists and is valid, returns its full, absolute server path. Otherwise, returns `false`."
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 3,
+      "phase_name": "Controllers: The Application Glue",
+      "tasks": [
+        {
+          "task_id": "CTRL-01",
+          "task_name": "Implement the PageController",
+          "target_file": "/app/Controllers/PageController.php",
+          "specifications": [
+            "Create a class `PageController`.",
+            "Create a public method `showHomePage()`: This method will instantiate `FileModel`, call its `getAllFiles()` method to get the list of files, and then include/require the `home.view.php` template, passing the files array to it."
+          ]
+        },
+        {
+          "task_id": "CTRL-02",
+          "task_name": "Implement the UploadController",
+          "target_file": "/app/Controllers/UploadController.php",
+          "specifications": [
+            "Create a class `UploadController`.",
+            "Create a public method `handleUpload()`: Check that `$_FILES['userfile']` is set. Instantiate `FileModel` and call `$fileModel->saveFile($_FILES['userfile'])`. Set the `Content-Type: application/json` header, `json_encode()` the result array from the model, echo it, and then `exit()`."
+          ]
+        },
+        {
+          "task_id": "CTRL-03",
+          "task_name": "Implement the DownloadController",
+          "target_file": "/app/Controllers/DownloadController.php",
+          "specifications": [
+            "Create a class `DownloadController`.",
+            "Create a public method `serveFile()`: Get the filename from `$_GET['file']`. Instantiate `FileModel` and call `$fileModel->getFilePath(...)`. If a valid path is returned, the Controller sets all necessary download headers (`Content-Type`, `Content-Disposition`, etc.) and streams the file with `readfile()`. If the method returns false, the Controller sets a `404 Not Found` HTTP status code and displays an error."
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 4,
+      "phase_name": "View: The Presentation Layer",
+      "tasks": [
+        {
+          "task_id": "VIEW-01",
+          "task_name": "Create the Home View Template",
+          "target_file": "/app/Views/home.view.php",
+          "specifications": [
+            "This file will contain the complete HTML structure from the original `index.php`.",
+            "It will link stylesheets and scripts to their new paths, e.g., `/css/style.css` and `/js/app.js`.",
+            "Instead of a PHP include for the file list, it will contain a `foreach` loop that iterates over the `$files` array (passed from the `PageController`) and generates the `<li><a>...</a></li>` elements for each file.",
+            "The download link `href` attribute will point to the new route: `/download?file=...`"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 5,
+      "phase_name": "Frontend Assets Migration",
+      "tasks": [
+        {
+          "task_id": "FE-ASSET-01",
+          "task_name": "Adapt Client-Side JavaScript",
+          "target_file": "/public/js/app.js",
+          "specifications": [
+            "The client-side JavaScript logic remains largely the same.",
+            "The critical change is to update the URL in the `fetch()` API call from 'uploader.php' to the new router endpoint, `'/upload'`, which corresponds to the route defined in `/public/index.php`."
+          ]
+        },
+        {
+          "task_id": "FE-ASSET-02",
+          "task_name": "Migrate Stylesheet",
+          "target_file": "/public/css/style.css",
+          "specifications": [
+            "Move the existing `style.css` file to this new location without any internal changes. The view links to it from the web root."
+          ]
+        }
+       ]
+    }
+  ]
+}
+
+{
+  "version": "v3",
+  "project_name": "PHP Advanced MVC File Handler",
+  "project_goal": "To create a highly structured, secure, and configurable file handler application using an advanced MVC pattern. The goal is to maximize maintainability and portability by externalizing configuration and implementing robust error handling, while retaining a dependency-free, mobile-first frontend.",
+  "tech_stack": [ "PHP 8+ (OOP)", "Vanilla JavaScript (ES6+)", "HTML5", "CSS3" ],
+  "architecture_overview": "The application uses a front-controller pattern (`public/index.php`) to route all requests. A centralized configuration (`config/config.php`) is loaded into a simple application container (`src/Core/App.php`). The container manages dependencies and application state. A router dispatches requests to Controller methods. Controllers interact with the Model for business logic (e.g., file operations), and then pass data to a View for rendering. This ensures a strict separation of concerns, enhances security by keeping core logic and sensitive files outside the webroot, and improves maintainability through configuration.",
+  "file_structure": [
+    { "type": "directory", "path": "./", "name": "advanced-file-handler" },
+    { "type": "directory", "path": "./advanced-file-handler/", "name": "config", "description": "Contains all application configuration files." },
+    { "type": "directory", "path": "./advanced-file-handler/", "name": "public", "description": "The public web root. Only this directory is exposed." },
+    { "type": "directory", "path": "./advanced-file-handler/", "name": "src", "description": "Core application source code (logic, controllers, models)." },
+    { "type": "directory", "path": "./advanced-file-handler/", "name": "uploads", "description": "Secure storage for uploaded files. MUST be outside the public web root." },
+
+    { "type": "file", "path": "./advanced-file-handler/config/", "name": "config.php", "description": "Returns an array of application settings." },
+
+    { "type": "file", "path": "./advanced-file-handler/public/", "name": "index.php", "description": "The single entry point (Front Controller)." },
+    { "type": "file", "path": "./advanced-file-handler/public/", "name": ".htaccess", "description": "Redirects all requests to index.php." },
+    { "type": "directory", "path": "./advanced-file-handler/public/", "name": "css" },
+    { "type": "file", "path": "./advanced-file-handler/public/css/", "name": "style.css" },
+    { "type": "directory", "path": "./advanced-file-handler/public/", "name": "js" },
+    { "type": "file", "path": "./advanced-file-handler/public/js/", "name": "app.js" },
+
+    { "type": "directory", "path": "./advanced-file-handler/src/", "name": "Core" },
+    { "type": "file", "path": "./advanced-file-handler/src/Core/", "name": "App.php", "description": "A simple service container for managing dependencies and config." },
+    { "type": "file", "path": "./advanced-file-handler/src/Core/", "name": "Router.php" },
+    { "type": "file", "path": "./advanced-file-handler/src/Core/", "name": "Request.php" },
+
+    { "type": "directory", "path": "./advanced-file-handler/src/", "name": "Controllers" },
+    { "type": "file", "path": "./advanced-file-handler/src/Controllers/", "name": "HomeController.php", "description": "Handles rendering of the main page." },
+    { "type": "file", "path": "./advanced-file-handler/src/Controllers/", "name": "FileController.php", "description": "Handles file uploads and downloads." },
+    { "type": "file", "path": "./advanced-file-handler/src/Controllers/", "name": "ErrorController.php", "description": "Handles 404 and other errors." },
+
+    { "type": "directory", "path": "./advanced-file-handler/src/", "name": "Models" },
+    { "type": "file", "path": "./advanced-file-handler/src/Models/", "name": "FileModel.php", "description": "Handles all business logic for file system interaction." },
+
+    { "type": "directory", "path": "./advanced-file-handler/src/", "name": "Views" },
+    { "type": "file", "path": "./advanced-file-handler/src/Views/", "name": "home.view.php", "description": "HTML template for the main page." },
+    { "type": "file", "path": "./advanced-file-handler/src/Views/", "name": "errors/404.view.php", "description": "HTML template for 404 Not Found errors." }
+  ],
+  "implementation_plan": [
+    {
+      "phase": 1,
+      "phase_name": "Core Application Setup and Configuration",
+      "tasks": [
+        {
+          "task_id": "CORE-01",
+          "task_name": "Create Configuration File",
+          "target_file": "/config/config.php",
+          "specifications": [
+            "This file MUST return a PHP array.",
+            "Define keys for 'uploads_directory', 'max_file_size', and 'allowed_mime_types'."
+          ]
+        },
+        {
+          "task_id": "CORE-02",
+          "task_name": "Create Front Controller",
+          "target_file": "/public/index.php",
+          "specifications": [
+            "Define a `BASE_PATH` constant.",
+            "Use `spl_autoload_register` for class autoloading from the `src` directory.",
+            "Load the configuration file.",
+            "Bind the configuration array to the App container: `App::bind('config', require BASE_PATH . 'config/config.php');`",
+            "Instantiate the router, define routes, and dispatch the request."
+          ]
+        },
+        {
+          "task_id": "CORE-03",
+          "task_name": "Implement App Container",
+          "target_file": "/src/Core/App.php",
+          "specifications": [
+            "Create a class `App` with a static associative array `$registry`.",
+            "Create a static method `bind($key, $value)` to add items to the registry.",
+            "Create a static method `get($key)` to retrieve items from the registry. It should throw an exception if the key is not found."
+          ]
+        },
+        {
+          "task_id": "CORE-04",
+          "task_name": "Build Router and Request Classes",
+          "target_file": "/src/Core/",
+          "specifications": [
+            "**Request.php**: Unchanged from v2.",
+            "**Router.php**: Update the `dispatch` method. If a route is not found, it should call the `ErrorController`'s `notFound` method."
+          ]
+        },
+        {
+            "task_id": "CORE-05",
+            "task_name": "Implement Rewriting Rule",
+            "target_file": "/public/.htaccess",
+            "specifications": [ "Unchanged from v2. Use `mod_rewrite` to redirect all requests to `index.php`." ]
+        }
+      ]
+    },
+    {
+      "phase": 2,
+      "phase_name": "Model: Configurable Business Logic",
+      "tasks": [
+        {
+          "task_id": "MODEL-01",
+          "task_name": "Develop the FileModel Class",
+          "target_file": "/src/Models/FileModel.php",
+          "specifications": [
+            "The class must retain all core methods from the v2 design: `getAllFiles()`, `saveFile(array $fileData)`, and `getFilePath(string $filename)`.",
+            "The constructor `__construct()` should accept no arguments.",
+            "Remove hardcoded configuration properties; methods should retrieve configuration values from the App container, e.g., `App::get('config')['uploads_directory']`."
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 3,
+      "phase_name": "Controllers: Application Flow Control",
+      "tasks": [
+        {
+          "task_id": "CTRL-01",
+          "task_name": "Implement the HomeController",
+          "target_file": "/src/Controllers/HomeController.php",
+          "specifications": [
+            "Create a public method `show()`.",
+            "It should instantiate `FileModel`, get the list of files, and pass them to the `home.view.php` template."
+          ]
+        },
+        {
+          "task_id": "CTRL-02",
+          "task_name": "Implement the FileController",
+          "target_file": "/src/Controllers/FileController.php",
+          "specifications": [
+            "Create a public method `upload()`: This will contain the logic from the v2 `UploadController`. It will instantiate `FileModel` and call its `saveFile()` method.",
+            "Create a public method `download()`: This will contain the logic from the v2 `DownloadController`. It will use the `FileModel` to securely fetch the file path and stream the download."
+          ]
+        },
+        {
+          "task_id": "CTRL-03",
+          "task_name": "Implement the ErrorController",
+          "target_file": "/src/Controllers/ErrorController.php",
+          "specifications": [
+            "Create a public method `notFound()`.",
+            "This method should set the HTTP response code to 404 using `http_response_code(404)`.",
+            "It should then load the `errors/404.view.php` template."
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 4,
+      "phase_name": "View: The Presentation Layer",
+      "tasks": [
+        {
+          "task_id": "VIEW-01",
+          "task_name": "Create the Home and Error View Templates",
+          "target_file": "/src/Views/",
+          "specifications": [
+            "**home.view.php**: This file must contain the complete HTML structure as defined in the v1 schematic (including `drop-zone`, `preview-container`, etc.) and use the specified mobile-first CSS classes. Links to assets must be root-relative (e.g., `/css/style.css`). The upload form `action` should point to the `/upload` route, and download links to `/download?file=...`.",
+            "**errors/404.view.php**: A simple HTML page with a '404 - Page Not Found' message."
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 5,
+      "phase_name": "Frontend Assets Migration",
+      "tasks": [
+        {
+          "task_id": "FE-ASSET-01",
+          "task_name": "Adapt Client-Side JavaScript",
+          "target_file": "/public/js/app.js",
+          "specifications": [
+            "The `fetch()` API call must be updated to point to the new upload route, e.g., `'/upload'`."
+          ]
+        },
+        {
+          "task_id": "FE-ASSET-02",
+          "task_name": "Migrate Stylesheet",
+          "target_file": "/public/css/style.css",
+          "specifications": [
+            "Move the existing `style.css` file to this new location.",
+            "The styling logic itself, being mobile-first and utility-based, requires no internal changes."
+          ]
+        }
+       ]
+    }
+  ]
+}
